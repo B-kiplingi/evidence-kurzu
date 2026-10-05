@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Katalog kurzů')}">
+    <title>Katalog kurzů</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Katalog kurzů</h1>
+            <p class="page-subtitle">Správa nabídky rekvalifikačních a firemních vzdělávacích programů</p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <form th:action="@{/courses}" method="get" class="search-form">
+                <input type="text" name="q" th:value="${query}" class="form-control" placeholder="Hledat kurz podle názvu..." id="search-input">
+                <button type="submit" class="btn btn-outline" id="search-btn">Hledat</button>
+                <a th:if="${query != null and !query.isEmpty()}" th:href="@{/courses}" class="btn btn-outline" title="Zrušit filtr">Zrušit</a>
+            </form>
+
+            <div sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/courses/new}" class="btn btn-primary" id="btn-add-course">+ Přidat nový kurz</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table" id="courses-table">
+            <thead>
+                <tr>
+                    <th>Název kurzu</th>
+                    <th>Rozsah</th>
+                    <th>Cena</th>
+                    <th>Akreditace</th>
+                    <th style="text-align: right;">Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(courses)}">
+                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        Nebyly nalezeny žádné kurzy odpovídající zadaným kritériím.
+                    </td>
+                </tr>
+                <tr th:each="c : ${courses}">
+                    <td>
+                        <a th:href="@{/courses/{id}(id=${c.id})}" th:text="${c.name}" style="font-weight: 600; text-decoration: none; color: var(--text-main);">
+                            Název kurzu
+                        </a>
+                        <p th:if="${c.annotation}" th:text="${#strings.abbreviate(c.annotation, 90)}" style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.2rem;">
+                            Krátký popis kurzu...
+                        </p>
+                    </td>
+                    <td>
+                        <span th:text="${c.hoursDuration} + ' hod.'">40 hod.</span>
+                    </td>
+                    <td style="font-weight: 600;">
+                        <span th:text="${#numbers.formatDecimal(c.price, 1, 'WHITESPACE', 2, 'POINT')} + ' Kč'">14 500 Kč</span>
+                    </td>
+                    <td>
+                        <span th:if="${c.accredited}" class="badge badge-accredited">Akreditovaný</span>
+                        <span th:unless="${c.accredited}" class="badge badge-standard">Běžný kurz</span>
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <a th:href="@{/courses/{id}(id=${c.id})}" class="btn btn-outline btn-sm" th:id="'btn-view-' + ${c.id}">Detail</a>
+
+                        <span sec:authorize="hasRole('ADMIN')">
+                            <a th:href="@{/courses/{id}/edit(id=${c.id})}" class="btn btn-outline btn-sm" th:id="'btn-edit-' + ${c.id}">Upravit</a>
+
+                            <form th:action="@{/courses/{id}/delete(id=${c.id})}" method="post" style="display: inline;" onsubmit="return confirm('Opravdu si přejete tento kurz smazat?');">
+                                <button type="submit" class="btn btn-danger btn-sm" th:id="'btn-delete-' + ${c.id}">Smazat</button>
+                            </form>
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

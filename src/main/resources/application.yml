@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: akademie-trutnov
+  profiles:
+    active: dev
+  messages:
+    basename: messages
+    encoding: UTF-8
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  error:
+    include-message: always
+    include-binding-errors: always

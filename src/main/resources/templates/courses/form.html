@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${isEdit} ? 'Úprava kurzu' : 'Nový kurz')}">
+    <title th:text="${isEdit} ? 'Úprava kurzu' : 'Nový kurz'">Formulář kurzu</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div style="margin-bottom: 1.5rem;">
+        <a th:href="@{/courses}" class="btn btn-outline btn-sm" id="btn-back-form">&larr; Zpět na seznam kurzů</a>
+    </div>
+
+    <div class="card" style="max-width: 680px; margin: 0 auto;">
+        <div class="card-body">
+            <div style="margin-bottom: 1.5rem;">
+                <h1 class="page-title" style="font-size: 1.5rem;" th:text="${isEdit} ? 'Úprava kurzu' : 'Vytvoření nového kurzu'">Nový kurz</h1>
+                <p class="page-subtitle" th:text="${isEdit} ? 'Upravte údaje vybraného vzdělávacího kurzu.' : 'Zadejte parametry nově nabízeného kurzu.'">Popis...</p>
+            </div>
+
+            <form th:action="${isEdit} ? @{/courses/{id}(id=${courseId})} : @{/courses}"
+                  th:object="${course}"
+                  method="post"
+                  id="course-form">
+
+                <div class="form-group">
+                    <label for="name" class="form-label">Název kurzu *</label>
+                    <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="např. Vývoj webových aplikací v Javě" required>
+                    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="form-error">Chybný název</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="hoursDuration" class="form-label">Rozsah v hodinách *</label>
+                        <input type="number" id="hoursDuration" th:field="*{hoursDuration}" class="form-control" min="1" max="1000" placeholder="40" required>
+                        <div th:if="${#fields.hasErrors('hoursDuration')}" th:errors="*{hoursDuration}" class="form-error">Chybný rozsah</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price" class="form-label">Cena kurzu (Kč) *</label>
+                        <input type="number" id="price" th:field="*{price}" class="form-control" step="0.01" min="0" placeholder="12500.00" required>
+                        <div th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="form-error">Chybná cena</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        <input type="checkbox" id="accredited" th:field="*{accredited}">
+                        <label for="accredited" style="font-size: 0.925rem; font-weight: 500; cursor: pointer;">
+                            Kurz je akreditovaný (rekvalifikační program s osvědčením)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="annotation" class="form-label">Anotace / Popis kurzu</label>
+                    <textarea id="annotation" th:field="*{annotation}" class="form-control" rows="5" placeholder="Stručný popis obsahu kurzu, cílová skupina, získané dovednosti..."></textarea>
+                    <div th:if="${#fields.hasErrors('annotation')}" th:errors="*{annotation}" class="form-error">Chybná anotace</div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+                    <a th:href="@{/courses}" class="btn btn-outline" id="btn-cancel">Zrušit</a>
+                    <button type="submit" class="btn btn-primary" id="btn-submit" th:text="${isEdit} ? 'Uložit změny' : 'Vytvořit kurz'">
+                        Uložit kurz
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

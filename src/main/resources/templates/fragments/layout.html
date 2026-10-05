@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title != null ? title + ' | Akademie Trutnov' : 'Akademie Trutnov'}">Akademie Trutnov</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<header th:fragment="navbar" class="navbar">
+    <div class="nav-container">
+        <a th:href="@{/courses}" class="brand-logo" id="nav-brand-link">
+            <span class="brand-icon">AT</span>
+            <span>Akademie Trutnov</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/courses}" class="btn btn-outline btn-sm" id="nav-courses-link">Katalog kurzů</a>
+
+            <!-- Pro nepřihlášené -->
+            <div sec:authorize="!isAuthenticated()">
+                <a th:href="@{/login}" class="btn btn-primary btn-sm" id="nav-login-btn">Přihlásit se</a>
+            </div>
+
+            <!-- Pro přihlášené -->
+            <div sec:authorize="isAuthenticated()" class="nav-user">
+                <span style="font-weight: 500;" sec:authentication="name">Uživatel</span>
+                <span class="user-badge" sec:authorize="hasRole('ADMIN')">Admin</span>
+                <span class="user-badge" sec:authorize="hasRole('LECTURER') and !hasRole('ADMIN')">Lektor</span>
+                <span class="user-badge" sec:authorize="hasRole('STUDENT') and !hasRole('ADMIN') and !hasRole('LECTURER')">Student</span>
+
+                <form th:action="@{/logout}" method="post" style="display: inline; margin: 0;">
+                    <button type="submit" class="btn btn-outline btn-sm" id="nav-logout-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Odhlásit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div th:fragment="alerts">
+    <div th:if="${successMessage}" class="alert alert-success" id="alert-success">
+        <span th:text="${successMessage}">Akce byla úspěšná.</span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger" id="alert-danger">
+        <span th:text="${errorMessage}">Došlo k chybě.</span>
+    </div>
+</div>
+
+<footer th:fragment="footer">
+    <p>&copy; 2026 Akademie Trutnov &bull; Systém pro správu kurzů (PPRO FIM UHK)</p>
+</footer>
+
+</body>
+</html>

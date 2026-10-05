@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Přihlášení do systému')}">
+    <title>Přihlášení</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1 class="page-title" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Přihlášení</h1>
+            <p class="page-subtitle">Zadejte své přihlašovací údaje pro přístup do systému</p>
+        </div>
+
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <form th:action="@{/login}" method="post" id="login-form">
+            <div class="form-group">
+                <label for="username" class="form-label">Uživatelské jméno</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="např. admin" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Heslo</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="login-submit-btn" style="width: 100%; margin-top: 1rem;">
+                Přihlásit se
+            </button>
+        </form>
+
+        <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); font-size: 0.8125rem; color: var(--text-muted);">
+            <strong style="display: block; margin-bottom: 0.35rem; color: var(--text-main);">Testovací účty pro demo:</strong>
+            <ul style="padding-left: 1.25rem; line-height: 1.6;">
+                <li><strong>admin</strong> / <code>admin123</code> (Správce – plný přístup ke CRUD)</li>
+                <li><strong>lektor</strong> / <code>lektor123</code> (Lektor)</li>
+                <li><strong>student</strong> / <code>student123</code> (Účastník)</li>
+            </ul>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

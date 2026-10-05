@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${course.name})}">
+    <title>Detail kurzu</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div style="margin-bottom: 1.5rem;">
+        <a th:href="@{/courses}" class="btn btn-outline btn-sm" id="btn-back">&larr; Zpět na seznam kurzů</a>
+    </div>
+
+    <div class="card" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; gap: 1rem;">
+                <div>
+                    <h1 class="page-title" style="font-size: 1.75rem;" th:text="${course.name}">Název kurzu</h1>
+                    <div style="margin-top: 0.5rem;">
+                        <span th:if="${course.accredited}" class="badge badge-accredited">Akreditovaný vzdělávací program</span>
+                        <span th:unless="${course.accredited}" class="badge badge-standard">Běžný odborný kurz</span>
+                    </div>
+                </div>
+
+                <div style="text-align: right; background: var(--bg-main); padding: 0.75rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 600;">Cena kurzu</span>
+                    <strong style="font-size: 1.5rem; color: var(--primary);" th:text="${#numbers.formatDecimal(course.price, 1, 'WHITESPACE', 2, 'POINT')} + ' Kč'">14 500 Kč</strong>
+                </div>
+            </div>
+
+            <div style="margin: 2rem 0; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem;">Anotace a popis kurzu</h2>
+                <p style="white-space: pre-line; color: #334155; line-height: 1.7;" th:text="${course.annotation != null and !course.annotation.isEmpty() ? course.annotation : 'Pro tento kurz zatím nebyl vložen podrobnější popis.'}">
+                    Popis kurzu...
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; background: var(--bg-main); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 2rem;">
+                <div>
+                    <span style="font-size: 0.8125rem; color: var(--text-muted); display: block;">Hodinový rozsah</span>
+                    <strong style="font-size: 1.1rem;" th:text="${course.hoursDuration} + ' vyučovacích hodin'">40 hodin</strong>
+                </div>
+                <div>
+                    <span style="font-size: 0.8125rem; color: var(--text-muted); display: block;">Datum evidence</span>
+                    <strong style="font-size: 1.1rem;" th:text="${#temporals.format(course.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2026</strong>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
+                <a th:href="@{/courses}" class="btn btn-outline" id="btn-back-bottom">Zpět do katalogu</a>
+
+                <div sec:authorize="hasRole('ADMIN')" style="display: flex; gap: 0.5rem;">
+                    <a th:href="@{/courses/{id}/edit(id=${course.id})}" class="btn btn-primary" id="btn-edit-course">Upravit kurz</a>
+
+                    <form th:action="@{/courses/{id}/delete(id=${course.id})}" method="post" style="display: inline;" onsubmit="return confirm('Opravdu si přejete tento kurz smazat?');">
+                        <button type="submit" class="btn btn-danger" id="btn-delete-course">Smazat</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

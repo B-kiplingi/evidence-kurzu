@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Stránka nenalezena (404)')}">
+    <title>404 - Nenalezeno</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content" style="text-align: center; padding: 4rem 1rem;">
+    <h1 style="font-size: 5rem; font-weight: 800; color: var(--primary); line-height: 1;">404</h1>
+    <h2 style="font-size: 1.5rem; margin: 1rem 0;">Požadovaná položka nebyla nalezena</h2>
+    <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 2rem;" th:text="${errorMessage != null ? errorMessage : 'Hledaná stránka nebo záznam neexistuje nebo byl odstraněn.'}">
+        Chybové hlášení...
+    </p>
+    <a th:href="@{/courses}" class="btn btn-primary">&larr; Zpět do katalogu kurzů</a>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>
