@@ -34,8 +34,19 @@ build/
 ### VS Code ###
 .vscode/
 
+### Office & Documentation ###
+*.docx
+*.doc
+*.odt
+*.pptx
+*.xlsx
+.~lock.*
+*.bak
+
 ### OS / Temp ###
 .DS_Store
+Thumbs.db
 *.log
 *.tmp
-.~lock.*
+*.swp
+*~
