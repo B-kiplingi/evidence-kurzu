@@ -26,6 +26,9 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    @Column(length = 30)
+    private String phone;
+
     @Column(nullable = false)
     private boolean enabled = true;
 
@@ -44,10 +47,15 @@ public class User {
     }
 
     public User(String username, String password, String fullName, String email) {
+        this(username, password, fullName, email, null);
+    }
+
+    public User(String username, String password, String fullName, String email, String phone) {
         this.username = username;
         this.password = password;
         this.fullName = fullName;
         this.email = email;
+        this.phone = phone;
         this.enabled = true;
         this.createdAt = LocalDateTime.now();
     }
@@ -92,6 +100,14 @@ public class User {
         this.email = email;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -118,6 +134,18 @@ public class User {
 
     public void addRole(Role role) {
         this.roles.add(role);
+    }
+
+    public boolean isAdmin() {
+        return roles.stream().anyMatch(r -> "ROLE_ADMIN".equals(r.getName()));
+    }
+
+    public boolean isLecturer() {
+        return roles.stream().anyMatch(r -> "ROLE_LECTURER".equals(r.getName()));
+    }
+
+    public boolean isStudent() {
+        return roles.stream().anyMatch(r -> "ROLE_STUDENT".equals(r.getName()));
     }
 
     @Override

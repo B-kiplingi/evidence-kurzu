@@ -50,6 +50,56 @@
                 </div>
             </div>
 
+            <!-- Vypsané termíny kurzu -->
+            <div style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="font-size: 1.25rem; font-weight: 700;">Vypsané termíny tohoto kurzu</h2>
+                    <div sec:authorize="hasRole('ADMIN')">
+                        <a th:href="@{/terms/new(courseId=${course.id})}" class="btn btn-outline btn-sm" id="btn-add-term-for-course">+ Vypsat termín</a>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Termín konání</th>
+                                <th>Místo</th>
+                                <th>Obsazenost</th>
+                                <th>Stav</th>
+                                <th style="text-align: right;">Akce</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(terms)}">
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                                    Pro tento kurz zatím nejsou vypsány žádné termíny.
+                                </td>
+                            </tr>
+                            <tr th:each="t : ${terms}">
+                                <td>
+                                    <strong th:text="${#temporals.format(t.startDate, 'dd.MM.yyyy') + ' &ndash; ' + #temporals.format(t.endDate, 'dd.MM.yyyy')}">01.01. – 15.01.2026</strong>
+                                </td>
+                                <td th:text="${t.location}">Učebna A1</td>
+                                <td>
+                                    <span style="font-weight: 700;" th:text="${t.confirmedCount + ' / ' + t.capacity}">3 / 3</span>
+                                    <span th:if="${t.waitlistedCount > 0}" class="badge badge-waitlisted" style="margin-left: 0.35rem;" th:text="${t.waitlistedCount + ' v pořadníku'}">1 v pořadníku</span>
+                                </td>
+                                <td>
+                                    <span th:if="${t.status.name() == 'PLANNED'}" class="badge badge-standard">Plánovaný</span>
+                                    <span th:if="${t.status.name() == 'IN_PROGRESS'}" class="badge badge-confirmed">Probíhá</span>
+                                    <span th:if="${t.status.name() == 'COMPLETED'}" class="badge badge-completed">Dokončen</span>
+                                    <span th:if="${t.status.name() == 'CANCELLED'}" class="badge badge-cancelled">Zrušen</span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <a th:href="@{/terms/{id}(id=${t.id})}" class="btn btn-primary btn-sm">Detail &amp; Přihlásit</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
                 <a th:href="@{/courses}" class="btn btn-outline" id="btn-back-bottom">Zpět do katalogu</a>
 

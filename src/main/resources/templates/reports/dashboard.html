@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Přehledy a statistiky')}">
+    <title>Přehledy a statistiky</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Statistiky a manažerské přehledy</h1>
+            <p class="page-subtitle">Výkaznictví Akademie Trutnov: obsazenost termínů, hodiny lektorů a vícekurzoví studenti</p>
+        </div>
+    </div>
+
+    <!-- Shrnutí / KPI kartičky -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <span class="stat-label">Termíny celkem</span>
+            <span class="stat-value" th:text="${occupancyReport.size()}">4</span>
+            <span class="stat-desc">Evidovaných běhů v systému</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Aktivní lektoři</span>
+            <span class="stat-value" th:text="${lecturerReport.size()}">2</span>
+            <span class="stat-desc">Vyučujících externích specialistů</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Studenti s více kurzy</span>
+            <span class="stat-value" style="color: var(--primary);" th:text="${multiCourseReport.size()}">2</span>
+            <span class="stat-desc" th:text="${'V kalendářním roce ' + selectedYear}">V roce 2026</span>
+        </div>
+    </div>
+
+    <!-- 1. Report: Naplněnost termínů -->
+    <div class="card" style="margin-bottom: 2.5rem;" id="report-occupancy">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <h2 style="font-size: 1.3rem; font-weight: 700;">1. Přehled naplněnosti jednotlivých termínů</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Sledování vytížení učeben, počtu účastníků a čekacích front v pořadníku</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Kurz</th>
+                            <th>Termín</th>
+                            <th>Místo</th>
+                            <th>Kapacita</th>
+                            <th>Obsazeno</th>
+                            <th>V pořadníku</th>
+                            <th>Míra obsazení</th>
+                            <th>Stav</th>
+                            <th style="text-align: right;">Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(occupancyReport)}">
+                            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                                Nejsou k dispozici žádná data o termínech.
+                            </td>
+                        </tr>
+                        <tr th:each="row : ${occupancyReport}">
+                            <td>
+                                <strong th:text="${row.courseName}">Programování v Javě</strong>
+                            </td>
+                            <td th:text="${#temporals.format(row.startDate, 'dd.MM.') + ' &ndash; ' + #temporals.format(row.endDate, 'dd.MM.yyyy')}">01.01. – 15.01.2026</td>
+                            <td th:text="${row.location}">Učebna A1</td>
+                            <td th:text="${row.capacity}">3</td>
+                            <td>
+                                <strong th:text="${row.confirmedCount}">3</strong>
+                            </td>
+                            <td>
+                                <span th:if="${row.waitlistedCount > 0}" class="badge badge-waitlisted" th:text="${row.waitlistedCount + ' v pořadníku'}">2 v pořadníku</span>
+                                <span th:if="${row.waitlistedCount == 0}" style="color: var(--text-muted); font-size: 0.85rem;">0</span>
+                            </td>
+                            <td style="min-width: 140px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700;">
+                                    <span th:text="${row.occupancyPercentage + ' %'}">100 %</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-fill" th:classappend="${row.confirmedCount >= row.capacity} ? 'full' : ''" th:style="'width: ' + ${row.occupancyPercentage} + '%;'"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <span th:if="${row.status.name() == 'PLANNED'}" class="badge badge-standard">Plánovaný</span>
+                                <span th:if="${row.status.name() == 'IN_PROGRESS'}" class="badge badge-confirmed">Probíhá</span>
+                                <span th:if="${row.status.name() == 'COMPLETED'}" class="badge badge-completed">Dokončen</span>
+                                <span th:if="${row.status.name() == 'CANCELLED'}" class="badge badge-cancelled">Zrušen</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <a th:href="@{/terms/{id}(id=${row.termId})}" class="btn btn-outline btn-sm">Otevřít</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Report: Odučené hodiny lektorů -->
+    <div class="card" style="margin-bottom: 2.5rem;" id="report-lecturers">
+        <div class="card-body">
+            <div style="margin-bottom: 1.25rem;">
+                <h2 style="font-size: 1.3rem; font-weight: 700;">2. Vykázané hodiny podle jednotlivých lektorů (ADR-05)</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">
+                    Rozdělení hodin mezi lektory podle skutečně odučených rozvrhových dnů a bloků
+                </p>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Lektor</th>
+                            <th>Kontakt (Telefon &bull; E-mail)</th>
+                            <th>Počet termínů</th>
+                            <th style="text-align: right;">Celkem odučených hodin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(lecturerReport)}">
+                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                                V systému nejsou evidováni žádní lektoři.
+                            </td>
+                        </tr>
+                        <tr th:each="lec : ${lecturerReport}">
+                            <td>
+                                <div class="brand-icon" style="width: 28px; height: 28px; font-size: 0.8rem; display: inline-flex; vertical-align: middle; margin-right: 0.5rem;">
+                                    <span th:text="${#strings.substring(lec.fullName, 0, 1)}">L</span>
+                                </div>
+                                <strong th:text="${lec.fullName}">Ing. Karel Lektor</strong>
+                            </td>
+                            <td>
+                                <div><strong th:text="${lec.phone}">+420 777 987 654</strong></div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${lec.email}">karel@example.cz</div>
+                            </td>
+                            <td th:text="${lec.termsTaughtCount + ' termínů'}">2 termíny</td>
+                            <td style="text-align: right;">
+                                <strong style="font-size: 1.2rem; color: var(--primary);" th:text="${lec.totalHoursTaught + ' hodin'}">32 hodin</strong>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Report: Studenti s více kurzy v daném roce -->
+    <div class="card" id="report-multi-course">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="font-size: 1.3rem; font-weight: 700;">
+                        3. Seznam studentů přihlášených na více než jeden kurz v roce <span th:text="${selectedYear}">2026</span>
+                    </h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">
+                        Identifikace věrných a firemních účastníků s opakovaným zájmem o vzdělávání
+                    </p>
+                </div>
+
+                <!-- Přepínač roku -->
+                <form th:action="@{/reports}" method="get" style="display: flex; gap: 0.5rem; align-items: center;">
+                    <label style="font-size: 0.85rem; font-weight: 600;">Rok:</label>
+                    <select name="year" class="form-control" onchange="this.form.submit()" style="padding: 0.35rem 0.65rem; width: 100px;">
+                        <option th:value="${currentYear - 1}" th:text="${currentYear - 1}" th:selected="${selectedYear == currentYear - 1}"></option>
+                        <option th:value="${currentYear}" th:text="${currentYear}" th:selected="${selectedYear == currentYear}"></option>
+                        <option th:value="${currentYear + 1}" th:text="${currentYear + 1}" th:selected="${selectedYear == currentYear + 1}"></option>
+                    </select>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Kontakt (Telefon &bull; E-mail)</th>
+                            <th style="text-align: center; width: 150px;">Počet různých kurzů</th>
+                            <th>Názvy navštěvovaných kurzů</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(multiCourseReport)}">
+                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                V roce <strong th:text="${selectedYear}">2026</strong> se žádný student nepřihlásil na více než jeden kurz.
+                            </td>
+                        </tr>
+                        <tr th:each="st : ${multiCourseReport}">
+                            <td>
+                                <strong th:text="${st.fullName}">Eva Černá</strong>
+                            </td>
+                            <td>
+                                <div><strong th:text="${st.phone}">+420 602 333 444</strong></div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${st.email}">eva@example.cz</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="badge badge-confirmed" style="font-size: 0.9rem;" th:text="${st.distinctCoursesCount + ' kurzy'}">
+                                    2 kurzy
+                                </span>
+                            </td>
+                            <td>
+                                <ul style="margin: 0; padding-left: 1.25rem;">
+                                    <li th:each="cn : ${st.courseNames}" th:text="${cn}" style="margin-bottom: 0.2rem;">
+                                        Podvojné účetnictví a daňová evidence
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

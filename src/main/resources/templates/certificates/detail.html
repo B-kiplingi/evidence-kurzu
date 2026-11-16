@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Osvědčení - ' + ${certificate.certificateNumber})}">
+    <title>Osvědčení o absolvování</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="no-print" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <a href="javascript:history.back()" class="btn btn-outline btn-sm">&larr; Zpět</a>
+        <div style="display: flex; gap: 0.5rem;">
+            <a th:href="@{/certificates/verify/{num}(num=${certificate.certificateNumber})}" class="btn btn-outline btn-sm" target="_blank">
+                Ověřovací odkaz
+            </a>
+            <button onclick="window.print()" class="btn btn-primary btn-sm" id="btn-print-certificate">
+                🖨️ Vytisknout osvědčení
+            </button>
+        </div>
+    </div>
+
+    <!-- Rám certifikátu -->
+    <div class="certificate-container" id="printable-certificate">
+        <div class="certificate-header">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div class="brand-icon" style="width: 44px; height: 44px; font-size: 1.25rem;">AT</div>
+                <div style="text-align: left;">
+                    <div style="font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em;">AKADEMIE TRUTNOV</div>
+                    <div style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em;">Vzdělávací centrum Trutnov</div>
+                </div>
+            </div>
+            <h1 class="certificate-title">OSVĚDČENÍ</h1>
+            <p class="certificate-subtitle">o úspěšném absolvování vzdělávacího programu</p>
+        </div>
+
+        <div class="certificate-body">
+            <p style="font-size: 1.1rem; color: #64748b;">Tímto se potvrzuje, že účastník/ice</p>
+
+            <div class="certificate-recipient" th:text="${certificate.studentName}">
+                Jan Novák
+            </div>
+
+            <p style="font-size: 1.1rem; color: #64748b;">úspěšně absolvoval(a) kurz</p>
+
+            <div class="certificate-course-name" th:text="${certificate.courseName}">
+                Programování v Javě a Spring Boot
+            </div>
+
+            <div class="certificate-details">
+                v celkovém rozsahu <strong><span th:text="${certificate.hoursDuration}">80</span> vyučovacích hodin</strong>.<br>
+                <span th:if="${certificate.isAccredited}" style="color: #047857; font-weight: 600;">
+                    ✓ Tento kurz je akreditován v systému dalšího profesního vzdělávání.
+                </span>
+                <span th:unless="${certificate.isAccredited}" style="color: #64748b;">
+                    Odborný certifikovaný kurz profesního rozvoje.
+                </span>
+            </div>
+        </div>
+
+        <div class="certificate-footer">
+            <div>
+                <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.25rem;">Místo a datum vydání:</div>
+                <strong style="font-size: 0.95rem;">V Trutnově dne <span th:text="${#temporals.format(certificate.issueDate, 'dd.MM.yyyy')}">15.01.2026</span></strong>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.5rem;">
+                    Evidenční číslo: <strong th:text="${certificate.certificateNumber}">OSV-2026-0001</strong>
+                </div>
+            </div>
+
+            <div class="certificate-seal">
+                Oficiální<br>razítko<br>AT
+            </div>
+
+            <div class="certificate-signature">
+                <div style="font-weight: 700; color: #1e293b;">Ing. Lucie Bartošová</div>
+                <div>ředitelka Akademie Trutnov</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}" class="no-print"></footer>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pravidlo porušeno')}">
+    <title>Pravidlo porušeno</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div class="card" style="max-width: 600px; margin: 3rem auto; text-align: center;">
+        <div class="card-body" style="padding: 3rem 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+            <h1 class="page-title" style="margin-bottom: 1rem;">Operaci nelze provést</h1>
+            <p class="form-error" style="font-size: 1.1rem; margin-bottom: 2rem;" th:text="${errorMessage}">
+                Akce neodpovídá pravidlům systému.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 1rem;">
+                <a href="javascript:history.back()" class="btn btn-outline">Zpět</a>
+                <a th:href="@{/courses}" class="btn btn-primary">Přejít na kurzy</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

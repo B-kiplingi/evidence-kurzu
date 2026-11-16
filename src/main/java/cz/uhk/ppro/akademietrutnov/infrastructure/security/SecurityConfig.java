@@ -28,12 +28,23 @@ public class SecurityConfig {
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/login", "/error").permitAll()
-                // Změny, vytváření a mazání kurzů vyžadují roli ADMIN (musí předcházet obecné /courses/{id})
+                .requestMatchers("/certificates/verify/**").permitAll()
+
+                // Administrátorské operace (musí předcházet obecné /{id})
                 .requestMatchers("/courses/new", "/courses/*/edit", "/courses/*/delete").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/courses", "/courses/*").hasRole("ADMIN")
-                // Prohlížení katalogu kurzů (čtení) pro všechny
-                .requestMatchers(HttpMethod.GET, "/", "/courses", "/courses/{id}").permitAll()
-                // Všechny ostatní požadavky vyžadují přihlášení
+                .requestMatchers("/terms/new", "/terms/*/edit", "/terms/*/delete", "/terms/*/promote-next", "/terms/*/days/**").hasRole("ADMIN")
+                .requestMatchers("/reports/**").hasRole("ADMIN")
+
+                // Lektoři a administrátoři (docházka, osvědčení)
+                .requestMatchers("/terms/*/attendance/**").hasAnyRole("ADMIN", "LECTURER")
+                .requestMatchers("/certificates", "/certificates/{id}").hasAnyRole("ADMIN", "LECTURER")
+                .requestMatchers("/registrations/*/issue-certificate", "/registrations/*/reject").hasAnyRole("ADMIN", "LECTURER")
+
+                // Veřejné čtení katalogu kurzů a termínů
+                .requestMatchers(HttpMethod.GET, "/", "/courses", "/courses/{id}", "/terms", "/terms/{id}").permitAll()
+
+                // Všechny ostatní požadavky (např. registrace, zrušení, moje přihlášky) vyžadují přihlášení
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

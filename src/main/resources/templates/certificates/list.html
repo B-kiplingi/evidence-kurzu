@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Vydaná osvědčení')}">
+    <title>Vydaná osvědčení</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Evidence vydaných osvědčení</h1>
+            <p class="page-subtitle">Oficiální registr vydaných unikátních osvědčení o absolvování kurzů Akademie Trutnov</p>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Číslo osvědčení</th>
+                    <th>Datum vydání</th>
+                    <th>Absolvent (Student)</th>
+                    <th>Absolvovaný kurz</th>
+                    <th>Rozsah</th>
+                    <th>Akreditace</th>
+                    <th style="text-align: right;">Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(certificates)}">
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        V systému zatím nejsou zaevidována žádná vydaná osvědčení.
+                    </td>
+                </tr>
+                <tr th:each="cert : ${certificates}">
+                    <td>
+                        <strong style="color: var(--primary);" th:text="${cert.certificateNumber}">OSV-2026-0001</strong>
+                    </td>
+                    <td th:text="${#temporals.format(cert.issueDate, 'dd.MM.yyyy')}">15.01.2026</td>
+                    <td>
+                        <strong th:text="${cert.studentName}">Jan Novák</strong>
+                    </td>
+                    <td th:text="${cert.courseName}">Podvojné účetnictví</td>
+                    <td>
+                        <span class="badge badge-standard" th:text="${cert.hoursDuration + ' hodin'}">80 hodin</span>
+                    </td>
+                    <td>
+                        <span th:if="${cert.isAccredited}" class="badge badge-accredited">Akreditovaný</span>
+                        <span th:unless="${cert.isAccredited}" class="badge badge-standard">Standardní</span>
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <a th:href="@{/certificates/{id}(id=${cert.id})}" class="btn btn-outline btn-sm">Zobrazit certifikát</a>
+                        <a th:href="@{/certificates/verify/{num}(num=${cert.certificateNumber})}" class="btn btn-outline btn-sm" target="_blank" title="Ověřit pravost">Ověřit</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

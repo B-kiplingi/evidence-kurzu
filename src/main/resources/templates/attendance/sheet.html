@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Evidence docházky')}">
+    <title>Evidence docházky</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <a th:href="@{/terms/{id}(id=${term.id})}" class="btn btn-outline btn-sm">&larr; Zpět na detail termínu</a>
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+            Kurz: <strong th:text="${term.course.name}">Java</strong> &bull;
+            Termín: <strong th:text="${#temporals.format(term.startDate, 'dd.MM.yyyy') + ' &ndash; ' + #temporals.format(term.endDate, 'dd.MM.yyyy')}">01.01. – 15.01.2026</strong>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Evidence docházky a hodnocení</h1>
+            <p class="page-subtitle">Záznam účasti studentů v jednotlivých dnech a kontrola podmínky 70 % pro vydání osvědčení (ADR-01)</p>
+        </div>
+    </div>
+
+    <!-- Výběr dne výuky (záložky / dny) -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem;">
+        <a th:each="d, stat : ${days}"
+           th:href="@{/terms/{termId}/attendance(termId=${term.id}, dayId=${d.id})}"
+           class="btn btn-sm"
+           th:classappend="${selectedDay != null and selectedDay.id == d.id} ? 'btn-primary' : 'btn-outline'"
+           style="white-space: nowrap;">
+            <span th:text="${(stat.index + 1) + '. den (' + #temporals.format(d.dayDate, 'dd.MM.') + ')'}">1. den (01.01.)</span>
+        </a>
+    </div>
+
+    <div th:if="${selectedDay == null}" class="alert alert-danger">
+        Termín zatím nemá definované žádné dny v rozvrhu. Nejprve přidejte dny výuky na detailu termínu.
+    </div>
+
+    <!-- Formulář zápisu docházky pro vybraný den -->
+    <div th:if="${selectedDay != null}" class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="font-size: 1.25rem; font-weight: 700;">
+                        Den výuky: <span th:text="${#temporals.format(selectedDay.dayDate, 'dd.MM.yyyy')}">01.01.2026</span>
+                    </h2>
+                    <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+                        Čas: <strong th:text="${selectedDay.startTime + ' &ndash; ' + selectedDay.endTime}">09:00 – 16:00</strong>
+                        (<span th:text="${selectedDay.hoursCount + ' hodin'}">7 hodin</span>) &bull;
+                        Vyučující lektor: <strong th:text="${selectedDay.lecturer != null ? selectedDay.lecturer.fullName : 'Dle termínu'}">Karel Lektor</strong> &bull;
+                        Téma: <span th:text="${selectedDay.topic != null ? selectedDay.topic : 'Obecná výuka'}">Téma lekce</span>
+                    </div>
+                </div>
+            </div>
+
+            <form th:action="@{/terms/{termId}/attendance(termId=${term.id})}" th:object="${attendanceForm}" method="post">
+                <input type="hidden" th:field="*{termId}">
+                <input type="hidden" th:field="*{termDayId}">
+
+                <div class="table-container" style="margin-bottom: 1.5rem;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th style="text-align: center; width: 120px;">Přítomen</th>
+                                <th>Poznámka lektora</th>
+                                <th style="text-align: center; width: 180px;">Celková docházka kurzu</th>
+                                <th style="text-align: right; width: 220px;">Dokončení a osvědčení</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(attendanceForm.records)}">
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                                    Na tomto termínu nejsou evidováni žádní potvrzení studenti.
+                                </td>
+                            </tr>
+                            <tr th:each="rec, stat : ${attendanceForm.records}">
+                                <td>
+                                    <input type="hidden" th:field="*{records[__${stat.index}__].registrationId}">
+                                    <input type="hidden" th:field="*{records[__${stat.index}__].termDayId}">
+                                    <strong th:text="${rec.studentName}">Jan Novák</strong>
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="checkbox"
+                                           th:field="*{records[__${stat.index}__].present}"
+                                           style="width: 1.35rem; height: 1.35rem; cursor: pointer; accent-color: var(--primary);"
+                                           th:id="'check-present-' + ${rec.registrationId}">
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           th:field="*{records[__${stat.index}__].note}"
+                                           class="form-control"
+                                           style="padding: 0.35rem 0.6rem; font-size: 0.85rem;"
+                                           placeholder="Poznámka k docházce...">
+                                </td>
+                                <td style="text-align: center;">
+                                    <div>
+                                        <strong style="font-size: 1.05rem;" th:text="${attendanceRates[rec.registrationId] + ' %'}">75.0 %</strong>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);"
+                                             th:text="${attendedDaysCounts[rec.registrationId] + ' / ' + days.size() + ' dnů'}">3 / 4 dnů</div>
+                                    </div>
+                                    <span th:if="${attendanceRates[rec.registrationId] >= 70.0}" class="badge badge-confirmed" style="margin-top: 0.25rem;">
+                                        &ge; 70 % Splněno
+                                    </span>
+                                    <span th:if="${attendanceRates[rec.registrationId] < 70.0}" class="badge badge-waitlisted" style="margin-top: 0.25rem;">
+                                        &lt; 70 % Nedostatečná
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <!-- Pokud student již má osvědčení -->
+                                    <div th:each="conf : ${confirmedRegistrations}" th:if="${conf.id == rec.registrationId and conf.certificate != null}">
+                                        <a th:href="@{/certificates/{id}(id=${conf.certificate.id})}" class="btn btn-outline btn-sm" style="color: #6d28d9; border-color: #c4b5fd;">
+                                            🎓 Osvědčení <span th:text="${conf.certificate.certificateNumber}">OSV-0001</span>
+                                        </a>
+                                    </div>
+
+                                    <!-- Tlačítko pro schválení a vystavení osvědčení (pokud má >= 70 %) -->
+                                    <div th:each="conf : ${confirmedRegistrations}" th:if="${conf.id == rec.registrationId and conf.certificate == null and !conf.isCancelled()}">
+                                        <form th:if="${attendanceRates[rec.registrationId] >= 70.0}"
+                                              th:action="@{/registrations/{id}/issue-certificate(id=${conf.id})}"
+                                              method="post"
+                                              style="display: inline;"
+                                              onsubmit="return confirm('Opravdu chcete schválit úspěšné dokončení a vystavit unikátní neměnné osvědčení?');">
+                                            <button type="submit" class="btn btn-primary btn-sm" style="font-size: 0.75rem;">
+                                                🎓 Vystavit osvědčení
+                                            </button>
+                                        </form>
+
+                                        <span th:if="${attendanceRates[rec.registrationId] < 70.0}" style="font-size: 0.8rem; color: var(--text-muted);">
+                                            Nelze vydat (&lt; 70%)
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" id="btn-save-attendance">
+                        💾 Uložit docházku pro tento den
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

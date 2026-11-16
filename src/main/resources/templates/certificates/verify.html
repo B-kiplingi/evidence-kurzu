@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ověření pravosti osvědčení')}">
+    <title>Ověření pravosti osvědčení</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div class="card" style="max-width: 650px; margin: 3rem auto;">
+        <div class="card-body" style="padding: 2.5rem; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+            <h1 class="page-title" style="margin-bottom: 0.5rem; color: #065f46;">Osvědčení je platné a pravé</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">
+                Toto osvědčení bylo řádně evidováno a vydáno vzdělávacím centrem Akademie Trutnov.
+            </p>
+
+            <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; text-align: left; margin-bottom: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Evidenční číslo:</div>
+                        <strong style="font-size: 1.1rem; color: var(--primary);" th:text="${certificate.certificateNumber}">OSV-2026-0001</strong>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Datum vydání:</div>
+                        <strong th:text="${#temporals.format(certificate.issueDate, 'dd.MM.yyyy')}">15.01.2026</strong>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Absolvent:</div>
+                    <strong style="font-size: 1.15rem;" th:text="${certificate.studentName}">Jan Novák</strong>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Absolvovaný program:</div>
+                    <strong th:text="${certificate.courseName}">Podvojné účetnictví a daňová evidence</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;" th:text="${certificate.hoursDuration + ' vyučovacích hodin &bull; ' + (certificate.isAccredited ? 'Akreditovaný' : 'Standardní')}">
+                        120 vyučovacích hodin
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <a th:href="@{/courses}" class="btn btn-primary">Zpět do katalogu kurzů</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

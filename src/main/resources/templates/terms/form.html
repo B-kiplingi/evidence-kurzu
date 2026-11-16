@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${isEdit} ? 'Úprava termínu' : 'Nový termín')}">
+    <title>Termín</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div style="margin-bottom: 1.5rem;">
+        <a th:href="@{/terms}" class="btn btn-outline btn-sm">&larr; Zpět na seznam termínů</a>
+    </div>
+
+    <div class="card" style="max-width: 720px; margin: 0 auto;">
+        <div class="card-body">
+            <h1 class="page-title" style="margin-bottom: 1.5rem;" th:text="${isEdit} ? 'Úprava termínu kurzu' : 'Založení nového termínu'">
+                Nový termín
+            </h1>
+
+            <form th:action="${isEdit} ? @{/terms/{id}(id=${termId})} : @{/terms}"
+                  th:object="${termDto}"
+                  method="post">
+
+                <!-- Výběr kurzu -->
+                <div class="form-group">
+                    <label class="form-label" for="courseId">Kurz *</label>
+                    <select id="courseId" th:field="*{courseId}" class="form-control">
+                        <option value="">-- Vyberte kurz --</option>
+                        <option th:each="c : ${courses}"
+                                th:value="${c.id}"
+                                th:text="${c.name + ' (' + c.hoursDuration + ' hod, ' + #numbers.formatDecimal(c.price, 1, 'WHITESPACE', 0, 'POINT') + ' Kč)'}">
+                        </option>
+                    </select>
+                    <div th:if="${#fields.hasErrors('courseId')}" th:errors="*{courseId}" class="form-error"></div>
+                </div>
+
+                <!-- Termín od - do -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="startDate">Datum zahájení *</label>
+                        <input type="date" id="startDate" th:field="*{startDate}" class="form-control">
+                        <div th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}" class="form-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="endDate">Datum ukončení *</label>
+                        <input type="date" id="endDate" th:field="*{endDate}" class="form-control">
+                        <div th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}" class="form-error"></div>
+                    </div>
+                </div>
+
+                <!-- Místo a kapacita -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="location">Místo konání / Učebna *</label>
+                        <input type="text" id="location" th:field="*{location}" class="form-control" placeholder="Např. Učebna A1 (Počítačová)">
+                        <div th:if="${#fields.hasErrors('location')}" th:errors="*{location}" class="form-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="capacity">Kapacita učebny *</label>
+                        <input type="number" id="capacity" th:field="*{capacity}" class="form-control" min="1" placeholder="Např. 12">
+                        <div th:if="${#fields.hasErrors('capacity')}" th:errors="*{capacity}" class="form-error"></div>
+                    </div>
+                </div>
+
+                <!-- Stav -->
+                <div class="form-group">
+                    <label class="form-label" for="status">Stav termínu</label>
+                    <select id="status" th:field="*{status}" class="form-control">
+                        <option value="PLANNED">Plánovaný</option>
+                        <option value="IN_PROGRESS">Probíhající</option>
+                        <option value="COMPLETED">Ukončený</option>
+                        <option value="CANCELLED">Zrušený</option>
+                    </select>
+                </div>
+
+                <!-- Výběr vyučujících lektorů (M:N vazba, střídání dvou lektorů) -->
+                <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <label class="form-label">Přiřazení lektoři (lze vybrat více lektorů pro střídání):</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 0.5rem;">
+                        <div th:each="lec : ${lecturers}" class="form-check" style="background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                            <input type="checkbox" th:id="'lec-' + ${lec.id}" th:value="${lec.id}" th:field="*{lecturerIds}">
+                            <label th:for="'lec-' + ${lec.id}" style="cursor: pointer; font-size: 0.9rem;">
+                                <strong th:text="${lec.fullName}">Ing. Karel Lektor</strong>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="${lec.email}">karel@example.cz</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tlačítka -->
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                    <a th:href="@{/terms}" class="btn btn-outline">Zrušit</a>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-term" th:text="${isEdit} ? 'Uložit změny' : 'Vytvořit termín'">
+                        Vytvořit termín
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

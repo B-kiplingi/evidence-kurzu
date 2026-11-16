@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Termíny kurzů')}">
+    <title>Termíny kurzů</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Termíny kurzů</h1>
+            <p class="page-subtitle">Přehled plánovaných i probíhajících běhů kurzů Akademie Trutnov</p>
+        </div>
+        <div sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/terms/new}" class="btn btn-primary" id="btn-create-term">+ Založit nový termín</a>
+        </div>
+    </div>
+
+    <!-- Filtrování -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body" style="padding: 1.25rem;">
+            <form th:action="@{/terms}" method="get" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="form-label">Filtrovat podle kurzu:</label>
+                    <select name="courseId" class="form-control" onchange="this.form.submit()">
+                        <option value="">-- Všechny kurzy --</option>
+                        <option th:each="c : ${courses}"
+                                th:value="${c.id}"
+                                th:text="${c.name}"
+                                th:selected="${c.id == selectedCourseId}">
+                        </option>
+                    </select>
+                </div>
+
+                <div style="flex: 1; min-width: 180px;">
+                    <label class="form-label">Filtrovat podle stavu:</label>
+                    <select name="status" class="form-control" onchange="this.form.submit()">
+                        <option value="">-- Všechny stavy --</option>
+                        <option th:each="s : ${statuses}"
+                                th:value="${s}"
+                                th:text="${s.displayName}"
+                                th:selected="${s == selectedStatus}">
+                        </option>
+                    </select>
+                </div>
+
+                <div>
+                    <a th:href="@{/terms}" class="btn btn-outline">Obnovit filtry</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabulka termínů -->
+    <div class="table-container">
+        <table class="table" id="terms-table">
+            <thead>
+                <tr>
+                    <th>Kurz</th>
+                    <th>Termín konání</th>
+                    <th>Místo / Učebna</th>
+                    <th>Lektoři</th>
+                    <th>Obsazenost</th>
+                    <th>Stav</th>
+                    <th style="text-align: right;">Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(terms)}">
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        Nebyly nalezeny žádné termíny odpovídající zadaným filtrům.
+                    </td>
+                </tr>
+                <tr th:each="term : ${terms}" th:id="'term-row-' + ${term.id}">
+                    <td>
+                        <a th:href="@{/terms/{id}(id=${term.id})}" style="font-weight: 700; color: var(--primary); text-decoration: none;">
+                            <span th:text="${term.course.name}">Název kurzu</span>
+                        </a>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${term.course.hoursDuration + ' hodin &bull; ' + #numbers.formatDecimal(term.course.price, 1, 'WHITESPACE', 0, 'POINT') + ' Kč'}">
+                            80 hodin
+                        </div>
+                    </td>
+                    <td>
+                        <strong th:text="${#temporals.format(term.startDate, 'dd.MM.yyyy')}">01.01.2026</strong>
+                        <span style="color: var(--text-muted);"> &ndash; </span>
+                        <strong th:text="${#temporals.format(term.endDate, 'dd.MM.yyyy')}">15.01.2026</strong>
+                    </td>
+                    <td th:text="${term.location}">Učebna A1</td>
+                    <td>
+                        <div th:if="${#lists.isEmpty(term.lecturers)}" style="color: var(--text-muted); font-size: 0.85rem;">
+                            <em>Zatím nepřiřazen</em>
+                        </div>
+                        <div th:each="lec : ${term.lecturers}" style="font-size: 0.85rem;">
+                            &bull; <span th:text="${lec.fullName}">Jméno lektora</span>
+                        </div>
+                    </td>
+                    <td style="min-width: 140px;">
+                        <div>
+                            <span style="font-weight: 700;" th:text="${term.confirmedCount + ' / ' + term.capacity}">3 / 3</span>
+                            <span th:if="${term.waitlistedCount > 0}" class="badge badge-waitlisted" style="margin-left: 0.35rem;"
+                                  th:text="${term.waitlistedCount + ' v pořadníku'}">2 v pořadníku</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill"
+                                 th:classappend="${term.isFull()} ? 'full' : ''"
+                                 th:style="'width: ' + ${term.occupancyPercentage} + '%;'">
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span th:if="${term.status.name() == 'PLANNED'}" class="badge badge-standard">Plánovaný</span>
+                        <span th:if="${term.status.name() == 'IN_PROGRESS'}" class="badge badge-confirmed">Probíhá</span>
+                        <span th:if="${term.status.name() == 'COMPLETED'}" class="badge badge-completed">Dokončen</span>
+                        <span th:if="${term.status.name() == 'CANCELLED'}" class="badge badge-cancelled">Zrušen</span>
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <a th:href="@{/terms/{id}(id=${term.id})}" class="btn btn-outline btn-sm">Detail &amp; Přihlášky</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

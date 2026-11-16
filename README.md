@@ -73,6 +73,11 @@ Akademie Trutnov nabízí rekvalifikační a firemní kurzy (přibližně 40 bě
 
 ---
 
+### E. Připomínky klienta
+
+
+---
+
 ## 3. Povinné technické minimum (Zadání PPRO)
 
 * **Architektura:** Třívrstvá architektura se striktními jednosměrnými závislostmi:
@@ -97,11 +102,63 @@ Tato sekce průběžně dokumentuje klíčová rozhodnutí učiněná během ná
 
 | ID | Oblast / Téma | Rozhodnutí a zdůvodnění | Stav |
 |---|---|---|---|
-| **ADR-01** | **Pravidlo dokončení kurzu** | Bude vyžadována minimální docházka 70 % jako systémové prerekvizitum + finální formální potvrzení/posouzení lektorem v systému. Tím jsou splněny obě podmínky. | *Návrh k potvrzení* |
-| **ADR-02** | **Posun z pořadníku** | Při uvolnění místa systém nevloží náhradníka „napevno“, ale nabídne mu rezervaci se lhůtou (např. 24–48 hod.) k potvrzení, případně umožní administrátorovi manuální posun po telefonické domluvě. | *Návrh k potvrzení* |
-| **ADR-03** | **Souběh termínů téhož kurzu** | Student se může přihlásit pouze na jeden aktivní řádný termín daného kurzu; na další termíny může být maximálně v pozici náhradníka v pořadníku. | *Návrh k potvrzení* |
-| **ADR-04** | **Dodatečný zápis po zahájení** | Běžný uživatel se po zahájení zapsat nemůže; zápis po zahájení je umožněn pouze administrátorovi/vedení s povinným vyplněním důvodu výjimky. | *Návrh k potvrzení* |
-| **ADR-05** | **Rozdělení hodin lektorů** | U termínů s více lektory se lektoři přiřazují k jednotlivým dnům/blokům docházky. Vykazované hodiny lektora se pak počítají ze skutečně odučených bloků. | *Návrh k potvrzení* |
-| **ADR-06** | **Technologický stack** | **Jazyk & Framework:** Java (OpenJDK) + **Spring Boot** (Spring MVC, Thymeleaf, Spring Data JPA, Spring Security).<br>**Prezentační vrstva:** Server-side Thymeleaf šablony s moderním, responzivním CSS.<br>**Databáze & Migrace:** PostgreSQL v Dockeru + Flyway pro verzované migrace schématu.<br>**Architektura:** Striktní třívrstvá (Prezentace / Web → Doménová / Aplikační logika → Persistenční / Repozitářová vrstva).<br>**Testování:** JUnit 5, Mockito, Spring Boot Test / Testcontainers. | **Schváleno** |
+| **ADR-01** | **Pravidlo dokončení kurzu** | Bude vyžadována minimální docházka 70 % jako systémové prerekvizitum + finální formální potvrzení/posouzení lektorem v systému. Tím jsou splněny obě podmínky. | **Schváleno** |
+| **ADR-02** | **Posun z pořadníku** | Poloautomatický posun s kontrolou: Administrátor vidí pořadník s kontaktními údaji náhradníka (telefon, e-mail) a při uvolnění místa na termínu může prvního náhradníka v pořadí povýšit jedním kliknutím na řádného účastníka. Pořadí náhradníků se striktně posouvá bez přeskakování. | **Schváleno** |
+| **ADR-03** | **Souběh termínů téhož kurzu** | Student se může přihlásit pouze na jeden aktivní řádný termín daného kurzu; na další termíny může být maximálně v pozici náhradníka v pořadníku. | **Schváleno** |
+| **ADR-04** | **Dodatečný zápis po zahájení** | Běžný uživatel se po zahájení termínu zapsat nemůže; zápis po zahájení je umožněn pouze administrátorovi/vedení s povinným vyplněním důvodu výjimky. | **Schváleno** |
+| **ADR-05** | **Rozdělení hodin lektorů** | U termínů s více lektory se lektoři přiřazují k jednotlivým dnům/blokům docházky. Vykazované hodiny lektora se pak počítají ze skutečně odučených bloků. | **Schváleno** |
+| **ADR-06** | **Technologický stack** | **Jazyk & Framework:** Java (OpenJDK 21) + **Spring Boot 3.3.4** (Spring MVC, Thymeleaf, Spring Data JPA, Spring Security).<br>**Prezentační vrstva:** Server-side Thymeleaf šablony s moderním responzivním CSS.<br>**Databáze & Migrace:** PostgreSQL v Dockeru + Flyway pro verzované migrace schématu.<br>**Architektura:** Striktní třívrstvá (Prezentace → Aplikační / Doménová logika → Datová vrstva).<br>**Testování:** JUnit 5, Mockito, Spring Boot Test. | **Schváleno** |
+
+---
+
+## 5. Datový model a doménové entity
+
+Aplikace implementuje doménový model splňující a rozšiřující požadavky zadání (7 entit + M:N vazby):
+1. **Course** – Katalog kurzů (název, anotace, rozsah hodin, cena, akreditace).
+2. **CourseTerm** – Konkrétní běh/termín kurzu (datum od–do, místo/učebna, kapacita, stav: PLANNED, IN_PROGRESS, COMPLETED, CANCELLED).
+3. **User & Role** – Uživatelé systému s rolemi (`ROLE_ADMIN`, `ROLE_LECTURER`, `ROLE_STUDENT`), kontaktem (telefon, e-mail).
+4. **TermLecturer (M:N vazba)** – Přiřazení jednoho či více lektorů ke konkrétnímu termínu (střídání lektorů u delších kurzů).
+5. **TermDay** – Jednotlivé dny výuky termínu (datum, čas od–do, počet hodin, konkrétní vyučující lektor pro daný den, téma).
+6. **Registration** – Přihláška studenta na termín. Obsahuje stavy (`CONFIRMED`, `WAITLISTED`, `CANCELLED`, `COMPLETED`, `FAILED`), pozici v pořadníku (`queue_position`), důvod výjimky pro zápis po zahájení, auditní údaje o zrušení (čas a důvod zrušení – soft delete).
+7. **Attendance** – Evidence docházky studenta na jednotlivé dny termínu (přítomen: ano/ne, poznámka).
+8. **Certificate** – Vydané osvědčení o absolvování kurzu (striktně unikátní evidenční číslo např. `OSV-2026-0001`, datum vydání, auditovatelné neměnné údaje).
+
+---
+
+## 6. Spuštění a testovací účty
+
+### Kompletní spuštění v Dockeru:
+```bash
+docker compose up --build
+```
+Aplikace poběží na adrese: `http://localhost:8080`
+
+### Výchozí syntetické testovací účty:
+* **Administrátor:** `admin` / `admin123` (Plná správa kurzů, termínů, posun z pořadníku, statistiky, výjimky zápisu)
+* **Lektor 1:** `lektor` / `lektor123` (Ing. Karel Lektor – zápis docházky, hodnocení)
+* **Lektor 2:** `petra` / `petra123` (Mgr. Petra Svobodová – druhý lektor pro vícedenní střídavé kurzy)
+* **Studenti:** 
+  * `student` / `student123` (Jan Novák)
+  * `eva` / `eva123` (Eva Černá)
+  * `tomas` / `tomas123` (Tomáš Dvořák)
+  * `lucie` / `lucie123` (Lucie Veselá)
+  * `martin` / `martin123` (Martin Horák)
+
+---
+
+## 7. Automatizované testy
+
+Projekt obsahuje sadu 35 automatizovaných testů (unit i integrační), které pokrývají:
+* **RegistrationServiceTest:** Nepřekročitelnost kapacity, zařazení do pořadníku (WAITLISTED), posun z pořadníku (ADR-02), kontrola souběhu termínů (ADR-03), zápis po zahájení s výjimkou (ADR-04), soft-delete se zachováním historie.
+* **CertificateServiceTest:** Vyhodnocení minimální 70% docházky pro vydání osvědčení (ADR-01), zamítnutí při nedostatečné docházce, neměnnost vydaného osvědčení, unikátnost formátovaného čísla `OSV-YYYY-XXXX`.
+* **AttendanceServiceTest:** Přesný výpočet procentuální docházky studenta na termínu a ukládání záznamů přítomnosti.
+* **ReportServiceTest:** Výpočty obsazenosti termínů, rozdělení hodin podle odučených bloků lektorů (ADR-05) a detekce studentů s více kurzy v roce.
+* **CourseServiceTest & ControllerTesty:** Správa kurzů, zabezpečení přístupových práv dle rolí (Spring Security), MockMvc testy koncových bodů.
+
+Spuštění všech testů:
+```bash
+mvn test
+```
+
 
 

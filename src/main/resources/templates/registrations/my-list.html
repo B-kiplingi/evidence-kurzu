@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Moje přihlášky')}">
+    <title>Moje přihlášky</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: navbar}"></header>
+
+<main class="main-content">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Moje přihlášky na kurzy</h1>
+            <p class="page-subtitle">Přehled vašich přihlášek, potvrzené účasti a pozic v pořadníku náhradníků</p>
+        </div>
+        <div>
+            <a th:href="@{/terms}" class="btn btn-primary">+ Procházet volné termíny</a>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Kurz</th>
+                    <th>Termín konání</th>
+                    <th>Místo</th>
+                    <th>Stav přihlášky</th>
+                    <th>Datum přihlášení</th>
+                    <th style="text-align: right;">Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(registrations)}">
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        Zatím nemáte žádné přihlášky. Vyberte si termín v <a th:href="@{/terms}" style="color: var(--primary);">přehledu termínů</a>.
+                    </td>
+                </tr>
+                <tr th:each="r : ${registrations}">
+                    <td>
+                        <a th:href="@{/terms/{id}(id=${r.term.id})}" style="font-weight: 700; color: var(--primary); text-decoration: none;">
+                            <span th:text="${r.term.course.name}">Programování v Javě</span>
+                        </a>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);" th:text="${r.term.course.hoursDuration + ' hodin &bull; ' + #numbers.formatDecimal(r.term.course.price, 1, 'WHITESPACE', 0, 'POINT') + ' Kč'}">80 hod</div>
+                    </td>
+                    <td>
+                        <strong th:text="${#temporals.format(r.term.startDate, 'dd.MM.yyyy')}">01.01.2026</strong>
+                        <span style="color: var(--text-muted);"> &ndash; </span>
+                        <strong th:text="${#temporals.format(r.term.endDate, 'dd.MM.yyyy')}">15.01.2026</strong>
+                    </td>
+                    <td th:text="${r.term.location}">Učebna A1</td>
+                    <td>
+                        <span th:if="${r.status.name() == 'CONFIRMED'}" class="badge badge-confirmed">Potvrzeno</span>
+                        <span th:if="${r.status.name() == 'WAITLISTED'}" class="badge badge-waitlisted">
+                            V pořadníku (<strong th:text="${'#' + r.queuePosition}">#1</strong>)
+                        </span>
+                        <span th:if="${r.status.name() == 'COMPLETED'}" class="badge badge-completed">Úspěšně absolvováno</span>
+                        <span th:if="${r.status.name() == 'CANCELLED'}" class="badge badge-cancelled">Zrušeno</span>
+                        <span th:if="${r.status.name() == 'FAILED'}" class="badge badge-failed">Nedokončeno</span>
+                    </td>
+                    <td th:text="${#temporals.format(r.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2026 10:00</td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <a th:href="@{/terms/{id}(id=${r.term.id})}" class="btn btn-outline btn-sm">Detail termínu</a>
+                        <form th:if="${r.isConfirmed() or r.isWaitlisted()}" th:action="@{/registrations/{id}/cancel(id=${r.id})}" method="post" style="display: inline;"
+                              onsubmit="return confirm('Opravdu chcete zrušit tuto přihlášku?');">
+                            <input type="hidden" name="reason" value="Odhlášení studentem">
+                            <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Odhlásit se</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

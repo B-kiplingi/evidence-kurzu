@@ -21,6 +21,10 @@
 
         <div class="nav-links">
             <a th:href="@{/courses}" class="btn btn-outline btn-sm" id="nav-courses-link">Katalog kurzů</a>
+            <a th:href="@{/terms}" class="btn btn-outline btn-sm" id="nav-terms-link">Termíny</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/reports}" class="btn btn-outline btn-sm" id="nav-reports-link">Přehledy & Statistiky</a>
+            <a sec:authorize="hasAnyRole('ADMIN', 'LECTURER')" th:href="@{/certificates}" class="btn btn-outline btn-sm" id="nav-certificates-link">Osvědčení</a>
+            <a sec:authorize="hasRole('STUDENT')" th:href="@{/my-registrations}" class="btn btn-outline btn-sm" id="nav-my-reg-link">Moje přihlášky</a>
 
             <!-- Pro nepřihlášené -->
             <div sec:authorize="!isAuthenticated()">

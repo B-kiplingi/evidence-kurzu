@@ -2,6 +2,7 @@ package cz.uhk.ppro.akademietrutnov.presentation.controller;
 
 import cz.uhk.ppro.akademietrutnov.domain.model.Course;
 import cz.uhk.ppro.akademietrutnov.domain.service.CourseService;
+import cz.uhk.ppro.akademietrutnov.domain.service.CourseTermService;
 import cz.uhk.ppro.akademietrutnov.presentation.dto.CourseDto;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,9 +19,11 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
+    private final CourseTermService courseTermService;
 
-    public CourseController(CourseService courseService) {
+    public CourseController(CourseService courseService, CourseTermService courseTermService) {
         this.courseService = courseService;
+        this.courseTermService = courseTermService;
     }
 
     @GetMapping
@@ -35,6 +38,7 @@ public class CourseController {
     public String viewCourse(@PathVariable("id") Long id, Model model) {
         Course course = courseService.findById(id);
         model.addAttribute("course", course);
+        model.addAttribute("terms", courseTermService.findByCourseId(id));
         return "courses/detail";
     }
 
